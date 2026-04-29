@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "cli-consultants",
-      "description": "Codex + Gemini CLI consultant flow — operational policy and setup tooling.",
-      "version": "1.0.0",
+      "description": "Codex (+ optional Gemini) CLI consultant flow — operational policy and setup tooling. Gemini is optional with automatic Codex-only mode fallback.",
+      "version": "1.1.0",
       "source": "./",
       "author": {
         "name": "Sergey",

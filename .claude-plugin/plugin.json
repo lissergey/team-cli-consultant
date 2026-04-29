@@ -1,7 +1,7 @@
 {
   "name": "cli-consultants",
-  "description": "Codex + Gemini CLI consultant flow — operational policy (when to consult, how to dual-pass) and setup tooling (wrapper scripts, sessions, scorecard) for using both CLIs as read-only architecture/design reviewers.",
-  "version": "1.0.0",
+  "description": "Codex (+ optional Gemini) CLI consultant flow — operational policy and setup tooling for using these CLIs as read-only architecture/design reviewers. Codex is required; Gemini is optional, with Codex-only mode automatically used when Gemini is not installed (with mandatory disclosure in reports).",
+  "version": "1.1.0",
   "author": {
     "name": "Sergey",
     "email": "samossupport@gmail.com"

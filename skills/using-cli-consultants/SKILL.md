@@ -1,22 +1,35 @@
 ---
 name: using-cli-consultants
-description: Use when about to draft an architecture/design spec, write or finalize an implementation plan, verify an implementation against its spec, or facing a non-trivial architecture/design judgment call. Skip for trivial naming/wording/style choices that belong to the user. Requires `tools/ask_codex.sh` and `tools/ask_gemini.sh` in the project; if missing, see setting-up-cli-consultants.
+description: Use when about to draft an architecture/design spec, write or finalize an implementation plan, verify an implementation against its spec, or facing a non-trivial architecture/design judgment call. Skip for trivial naming/wording/style choices that belong to the user. Requires `tools/ask_codex.sh` in the project; `tools/ask_gemini.sh` is optional but enables stronger dual final-pass discipline. If wrappers missing, see setting-up-cli-consultants.
 ---
 
 # Using CLI Consultants
 
 ## Overview
 
-Codex and Gemini run as **read-only persistent CLI sessions** that know the project. You consult them via file-based wrapper scripts:
+Codex (and optionally Gemini) run as **read-only persistent CLI sessions** that know the project. You consult them via file-based wrapper scripts:
 
-- `tools/ask_codex.sh` — Codex (primary architecture/design reviewer)
-- `tools/ask_gemini.sh` — Gemini (second-opinion reviewer for final passes)
+- `tools/ask_codex.sh` — Codex (primary architecture/design reviewer; **required**)
+- `tools/ask_gemini.sh` — Gemini (second-opinion reviewer for final passes; **optional but recommended**)
 
-Two independent models catch each other's blind spots. Both can read the live repo and cite file paths, so claims are checkable.
+Two independent models catch each other's blind spots. Both can read the live repo and cite file paths, so claims are checkable. When only Codex is configured, the discipline degrades to single-Codex final-pass — see "Codex-only mode" below.
+
+## Detecting available consultants
+
+Before any consultation, check what's wired up in the project:
+
+```bash
+[ -x tools/ask_codex.sh ]  && CODEX_AVAILABLE=1  || CODEX_AVAILABLE=0
+[ -x tools/ask_gemini.sh ] && GEMINI_AVAILABLE=1 || GEMINI_AVAILABLE=0
+```
+
+- `CODEX_AVAILABLE=0` → the operational policy can't run; either install Codex (see `setting-up-cli-consultants`) or work without consultants and disclose this to the user.
+- `GEMINI_AVAILABLE=0` → **Codex-only mode** (see below). Final-pass dual degrades to single-Codex pass with mandatory explicit reporting.
+- Both available → full dual policy (default).
 
 ## Policy table — when each is mandatory
 
-| Situation | Codex | Gemini |
+| Situation | Codex | Gemini (if configured) |
 |---|---|---|
 | Quick architecture sanity-check / design clarification | mandatory | optional |
 | Spec draft — iterations 1..N-1 | mandatory | not needed |
@@ -25,6 +38,8 @@ Two independent models catch each other's blind spots. Both can read the live re
 | **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** |
 | **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** |
 | Tie-break on disagreement | engage both iteratively until convergence | |
+
+**Codex-only mode (when `tools/ask_gemini.sh` is absent):** Replace every "mandatory dual" cell above with "mandatory single-Codex pass + explicit `Gemini SKIPPED (not configured on this host)` line in the consultation report". The discipline does NOT vanish — it gets demoted into single-pass-with-disclosure. Reports without the disclosure line are not allowed.
 
 **Don't overuse.** Trivial choices (variable naming, wording, formatting, single-line code style) go to the user directly, never to consultants.
 
@@ -42,6 +57,9 @@ Two independent models catch each other's blind spots. Both can read the live re
 | "User told me to skip the extra round" | The user owns scope and priority; the consultant policy is your discipline, not theirs to waive. State the cost of skipping and run the dual anyway, or explicitly escalate ("policy says dual final-pass — skip on your call?"). Do not silently comply. |
 | "Time pressure" | Unless the deadline is < 15 min away, the dual pass fits. If it truly doesn't, run Codex final + flag in the report that Gemini was deferred. |
 | "Trivial change to a final artifact" | If it's trivial, the dual pass returns "no concerns" in 2 minutes. Run it anyway — the cost asymmetry is overwhelming. |
+| "Gemini wrapper exists but I'll claim it doesn't to skip" | Lying about environment to escape policy is the discipline failure the skill exists to prevent. The runtime check `[ -x tools/ask_gemini.sh ]` is the ground truth, not your assertion. |
+| "I'll just skip installing Gemini in this project to avoid dual final-pass" | Codex-only mode is a cost paid in disclosure (every report carries `Gemini SKIPPED`). Choosing it deliberately to escape discipline is observable in the scorecard and report trail. The right move when Gemini is genuinely unavailable: accept Codex-only and disclose. The wrong move: install-skip as policy laundering. |
+| "Reports don't really need the `Gemini SKIPPED` line, the user can see Gemini isn't installed" | Wrong. The disclosure is non-optional in Codex-only mode. It's how you and the user track when single-pass was used vs. dual, for retrospective calibration of misses. |
 
 **Violating the letter of the policy is violating the spirit.** Don't rationalize.
 
@@ -61,22 +79,36 @@ EOF
 
 If the wrapper hangs or returns silently, see Failure modes.
 
-### Dual final-pass (parallel)
+### Final-pass (dual or single, depending on what's available)
 
-Always run them in parallel, never sequentially:
+```bash
+# Detect mode at consultation time
+[ -x tools/ask_gemini.sh ] && GEMINI_AVAILABLE=1 || GEMINI_AVAILABLE=0
+```
+
+**Dual mode (`GEMINI_AVAILABLE=1`)** — run them in parallel, never sequentially:
 
 ```bash
 # Write both question files (usually identical or near-identical)
-cat > /tmp/codex_question.txt <<'EOF' ...
+cat > /tmp/codex_question.txt  <<'EOF' ...
 cat > /tmp/gemini_question.txt <<'EOF' ...
 
-# Fire in parallel via background processes
-bash -lc '. ~/.nvm/nvm.sh && nvm use 22  >/dev/null 2>&1; ./tools/ask_codex.sh  > /tmp/codex_run.log 2>&1' &
-bash -lc '. ~/.nvm/nvm.sh && nvm use 22.5.1 >/dev/null 2>&1; ./tools/ask_gemini.sh > /tmp/gemini_run.log 2>&1' &
+# Fire in parallel via background processes (the wrappers handle nvm internally)
+./tools/ask_codex.sh  > /tmp/codex_run.log  2>&1 &
+./tools/ask_gemini.sh > /tmp/gemini_run.log 2>&1 &
 wait
 
-# Read both answers and synthesize
+# Read both answers and synthesize. Report convergence/divergence.
 ```
+
+**Codex-only mode (`GEMINI_AVAILABLE=0`)** — single Codex final-pass, with mandatory disclosure:
+
+```bash
+cat > /tmp/codex_question.txt <<'EOF' ...
+./tools/ask_codex.sh
+```
+
+In the report back to the user, the line **`Gemini SKIPPED (not configured on this host)`** is non-optional. See "Reporting back" below.
 
 **Note on Bash tool timeout:** consultant calls can take 2-5 minutes. Set `timeout: 300000` on the Bash invocation, otherwise the default 2-minute timeout truncates the call.
 
@@ -104,15 +136,18 @@ Codex respects `-s read-only` reliably — no prefix needed.
 
 ## Reporting back to the user
 
-After every consultation, give a brief report:
+After every consultation, give a brief report. The state of consultants invoked is **non-optional** — the user (and the scorecard, in dual cases) needs to know what actually ran.
 
-- **Single call:** "Asked Codex about X. It said Y. I agree / I disagree because Z."
+- **Single call (mid-iteration Codex):** "Asked Codex about X. It said Y. I agree / I disagree because Z."
 - **Dual final-pass:** "Asked both about X. Codex: Y₁. Gemini: Y₂. Convergence on A, B; divergence on C — taking Codex's view because [reason] / escalating C to user."
-- **On failure:** "Codex unreachable (timeout / empty answer). Continuing independently with [decision]; flag for re-review when consultant available."
+- **Codex-only final-pass (Gemini not configured):** "Asked Codex about X. It said Y. **Gemini SKIPPED (not configured on this host)** — single-Codex final-pass; user, please factor in that this is one model's view, not two."
+- **On failure (configured but unreachable):** "Codex unreachable (timeout / empty answer). Continuing independently with [decision]; flag for re-review when consultant available." For Gemini specifically: "Gemini unreachable (`/tmp/gemini_stderr.log`: <reason>) — fell back to Codex-only for this pass; report includes the `Gemini SKIPPED` line."
+
+The `Gemini SKIPPED` line is the disclosure cost of Codex-only mode. Don't bury it; surface it explicitly so future-you and the user can audit when single-pass discipline was used.
 
 ## Scorecard (dual cases only)
 
-When a consultation invoked **both** consultants on a mandatory item or tie-break, append a row to `.agent/consultant_scorecard.md` (schema is in that file's header). Single-consultant calls are not logged.
+When a consultation invoked **both** consultants on a mandatory item or tie-break, append a row to `.agent/consultant_scorecard.md` (schema is in that file's header). Single-consultant calls (including Codex-only final-passes) are not logged in the scorecard — that file is purely for calibrating the two models against each other when both ran.
 
 Fields capture: date, artifact, task type, question, each consultant's TL;DR, your eval (correct / partial / wrong / irrelevant / timeout), winner, ground truth (`?` if not yet known), notes on who missed what.
 
@@ -131,15 +166,20 @@ Fields capture: date, artifact, task type, question, each consultant's TL;DR, yo
 
 ## Don't block
 
-If a consultant is unreachable or returns an unclear answer, **continue independently** and note it in the report. The skill is a quality lever, not a hard gate. The only hard rule is: don't claim the dual final-pass happened when it didn't.
+If a consultant is unreachable or returns an unclear answer, **continue independently** and note it in the report. The skill is a quality lever, not a hard gate. The two hard rules are:
+
+1. Don't claim the dual final-pass happened when it didn't.
+2. When in Codex-only mode (Gemini wrapper absent), the `Gemini SKIPPED (not configured on this host)` disclosure line in every report is non-negotiable — that's the cost of operating with reduced discipline.
 
 ## Red flags — STOP and reconsider
 
-- About to commit a final spec/plan without Gemini's pass
+- About to commit a final spec/plan without running Gemini **when `tools/ask_gemini.sh` exists**
 - Thinking "Codex already said yes, no point asking Gemini"
 - Thinking "user told me to skip — they decided"
 - Running dual sequentially instead of parallel
 - Skipping the Gemini read-only prefix
 - About to consult on a naming/style/wording choice
+- Reporting a Codex-only final-pass without the `Gemini SKIPPED` disclosure line
+- Considering "I'll just delete `tools/ask_gemini.sh` from this project to escape dual-pass" — that's policy laundering, observable in git diff
 
 Each of these means: stop, run the canonical flow.
