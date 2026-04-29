@@ -1,0 +1,21 @@
+{
+  "name": "cli-consultants",
+  "description": "Codex + Gemini CLI consultant flow — operational policy (when to consult, how to dual-pass) and setup tooling (wrapper scripts, sessions, scorecard) for using both CLIs as read-only architecture/design reviewers.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Sergey",
+    "email": "samossupport@gmail.com"
+  },
+  "homepage": "https://github.com/lissergey/team-cli-consultant",
+  "repository": "https://github.com/lissergey/team-cli-consultant",
+  "license": "MIT",
+  "keywords": [
+    "consultants",
+    "codex",
+    "gemini",
+    "code-review",
+    "second-opinion",
+    "architecture-review",
+    "spec-review"
+  ]
+}
