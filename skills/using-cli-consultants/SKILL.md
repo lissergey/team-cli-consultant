@@ -19,16 +19,19 @@ When only Codex is configured (Gemini wrapper absent), Plan-subagent compensates
 
 ## Detecting available consultants
 
-Before any consultation, check what's wired up in the project:
+Before any consultation, check what's wired up in the project and what's available in the runtime:
 
 ```bash
 [ -x tools/ask_codex.sh ]  && CODEX_AVAILABLE=1  || CODEX_AVAILABLE=0
 [ -x tools/ask_gemini.sh ] && GEMINI_AVAILABLE=1 || GEMINI_AVAILABLE=0
+# Plan-subagent: available whenever Claude Code's Agent tool exists in this session.
+# Treat as ALWAYS available; if the runtime lacks Agent tool, this whole skill is moot anyway.
+PLAN_SUBAGENT_AVAILABLE=1
 ```
 
-- `CODEX_AVAILABLE=0` → the operational policy can't run; either install Codex (see `setting-up-cli-consultants`) or work without consultants and disclose this to the user.
-- `GEMINI_AVAILABLE=0` → **Codex-only mode** (see below). Final-pass dual degrades to single-Codex pass with mandatory explicit reporting.
-- Both available → full dual policy (default).
+- `CODEX_AVAILABLE=0` → the operational policy can't run; either install Codex (see `setting-up-cli-consultants`), use Plan-subagent as full replacement, or work without consultants and disclose this to the user.
+- `GEMINI_AVAILABLE=0` → **Codex-only-plus-Plan mode** (see below). Final-pass dual degrades to Codex + Plan-subagent quasi-dual with a softer mandatory disclosure line.
+- All three available → full triple-eligible policy. Dual final-pass (Codex + Gemini) remains the default; Plan-subagent is optional bonus and mandatory only on tie-break.
 
 ## Policy table — when each is mandatory
 
