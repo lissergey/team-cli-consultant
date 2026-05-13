@@ -7,12 +7,14 @@ description: Use when the user wants to install or replicate the Codex (and opti
 
 ## Overview
 
-This skill installs the file-based Codex (+ optional Gemini) consultant flow in a project. After setup, the project has:
+This skill installs the file-based Codex (+ optional Gemini) consultant flow in a project, plus references to the Plan-subagent prompt template for in-session reviews. After setup, the project has:
 
 - `tools/ask_codex.sh` — required Codex wrapper
 - `tools/ask_gemini.sh` — optional Gemini wrapper (skipped if Gemini CLI not installed on the host)
-- A "CLI Consultants" section in `CLAUDE.md` declaring the policy
-- `.agent/consultant_scorecard.md` for tracking dual-consultant calls
+- A "CLI Consultants" section in `CLAUDE.md` declaring the policy (with Plan-subagent as a third channel)
+- `.agent/consultant_scorecard.md` for tracking multi-consultant calls
+
+Plan-subagent itself requires **no install** — it's invoked via Claude Code's `Agent` tool at consultation time. The prompt template lives in this skill's `templates/PLAN_SUBAGENT_PROMPT.md`; the operational skill (`using-cli-consultants`) references it.
 
 The runtime state (questions, answers) lives in `/tmp/{codex,gemini}_{question,answer}.txt`.
 
@@ -136,7 +138,8 @@ The skill ships four templates in `templates/`:
 | `ask_codex.sh` | `tools/ask_codex.sh` | always |
 | `ask_gemini.sh` | `tools/ask_gemini.sh` | only if `$GEMINI_INSTALLED=1` |
 | `CLAUDE_SECTION.md` | append/merge into project `CLAUDE.md` | always |
-| `consultant_scorecard.md` | `.agent/consultant_scorecard.md` | always (used in dual mode; harmless in Codex-only) |
+| `consultant_scorecard.md` | `.agent/consultant_scorecard.md` | always |
+| `PLAN_SUBAGENT_PROMPT.md` | reference-only, NOT copied to project | always available at `${CLAUDE_PLUGIN_ROOT}/skills/setting-up-cli-consultants/templates/PLAN_SUBAGENT_PROMPT.md`; the operational skill points there |
 
 ### Steps
 
