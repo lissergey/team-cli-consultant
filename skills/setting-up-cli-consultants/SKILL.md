@@ -185,7 +185,12 @@ The skill ships four templates in `templates/`:
 5. **Install the scorecard:**
    ```bash
    mkdir -p .agent
-   cp "$SKILL_DIR/consultant_scorecard.md" .agent/consultant_scorecard.md
+   if [ -f .agent/consultant_scorecard.md ] && grep -q "winner" .agent/consultant_scorecard.md && ! grep -q "plan_subagent" .agent/consultant_scorecard.md; then
+       echo "Detected v1.x-schema scorecard at .agent/consultant_scorecard.md — leaving it in place."
+       echo "v2.0 entries will append with the new columns; mixed-schema history is acceptable."
+   else
+       cp "$SKILL_DIR/consultant_scorecard.md" .agent/consultant_scorecard.md
+   fi
    ```
 
 6. **Add the policy section to CLAUDE.md.** The `CLAUDE_SECTION.md` template is body-only (no instruction comments), so a plain append is safe:
@@ -347,7 +352,7 @@ These are load-bearing for the operational skill to work.
 
 After installation, tell the user:
 
-1. **Mode chosen** — `Full` (Codex + Gemini wrappers) or `Codex-only` (only `tools/ask_codex.sh`). If Codex-only, name the operational consequence: every consultation report will carry the `Gemini SKIPPED (not configured on this host)` disclosure line.
+1. **Mode chosen** — `Full` (Codex + Gemini wrappers; v2.0 triple-mandatory final-pass applies) or `Codex-only-plus-Plan` (only `tools/ask_codex.sh`; Plan-subagent compensates with `Gemini SKIPPED ...; Plan-subagent compensating as second voice` disclosure). In either mode, Plan-subagent is mandatory on final-pass per v2.0 policy. If a teammate later installs Gemini, re-running this skill upgrades the project to Full mode.
 2. Files created/modified (paths)
 3. Pre-flight checklist results (binaries found, Node versions OK)
 4. Session creation status — done, or pending user action (per applicable wrapper)
