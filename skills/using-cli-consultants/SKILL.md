@@ -253,5 +253,7 @@ If a consultant is unreachable or returns an unclear answer, **continue independ
 - Picking a winner on Codex↔Gemini tie-break without engaging Plan-subagent
 - Treating Plan-subagent as "the cheap option" and bulk-using it in place of Codex for iter-1..N-1 architecture work — its strength is fresh context, not architectural depth; wrong tool for that slot
 - Skipping the mandatory final-pass agent-execution question because "the architecture is obviously fine"
+- About to commit a final spec/plan in Full mode without dispatching Plan-subagent — this was acceptable in v1.x but is a v2.0 policy violation
+- Treating "triple final-pass" as the v1.x "dual final-pass with Plan-subagent bonus" — they have different mandatoriness, and reporting must reflect the v2.0 pattern
 
 Each of these means: stop, run the canonical flow.
