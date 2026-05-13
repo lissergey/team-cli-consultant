@@ -22,8 +22,8 @@ The runtime state (questions, answers) lives in `/tmp/{codex,gemini}_{question,a
 
 | Mode | Result | Operational consequence |
 |---|---|---|
-| **Full** | Both wrappers installed | Dual final-pass mandatory per operational policy |
-| **Codex-only** | Only `tools/ask_codex.sh` | Single-Codex final-pass with mandatory `Gemini SKIPPED (not configured on this host)` disclosure in every report |
+| **Full** | Both wrappers installed | **Triple-mandatory final-pass** (Codex + Gemini + Plan-subagent in parallel) per operational policy v2.0 |
+| **Codex-only-plus-Plan** | Only `tools/ask_codex.sh` | **Codex + Plan-subagent quasi-dual** final-pass with mandatory `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure in every report |
 
 The operational counterpart is the `using-cli-consultants` skill — it tells the agent **when** and **how** to use the flow once it's installed, and how to operate in either mode.
 
@@ -50,13 +50,13 @@ codex --version
 
 # 2. Gemini CLI on PATH — OPTIONAL (need >= 0.40 if installed)
 #    Absence is fine and expected on hosts where the teammate doesn't use Gemini.
-#    The install will produce Codex-only mode in that case.
+#    The install will produce Codex-only-plus-Plan mode in that case.
 if command -v gemini >/dev/null; then
     GEMINI_INSTALLED=1
     gemini --version
 else
     GEMINI_INSTALLED=0
-    echo "Gemini CLI not detected — installing in Codex-only mode."
+    echo "Gemini CLI not detected — installing in Codex-only-plus-Plan mode."
     echo "(Operational consequence: every consultation report carries the line"
     echo " 'Gemini SKIPPED (not configured on this host)'. See using-cli-consultants.)"
 fi
@@ -97,7 +97,7 @@ The detected `CODEX_NODE_VER` / `GEMINI_NODE_VER` get sed'd into the wrapper tem
 
 **If `codex` is missing:** stop and tell the user. Don't `npm install -g` without permission — the CLI is user-owned. Codex is required.
 
-**If `gemini` is missing:** proceed with Codex-only install. Surface to the user that the result will be Codex-only mode (operational consequence: dual final-pass downgrades to single-Codex final-pass with a mandatory `Gemini SKIPPED` disclosure line in every report). If they later install Gemini, they can re-run this skill — it's idempotent and will add the missing wrapper.
+**If `gemini` is missing:** proceed with Codex-only-plus-Plan install. Surface to the user that the result is **Codex-only-plus-Plan mode** (operational consequence: triple-mandatory final-pass downgrades to Codex + Plan-subagent quasi-dual pass with a mandatory `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report). If they later install Gemini, they can re-run this skill — it's idempotent and will add the missing wrapper, upgrading the project to Full mode.
 
 **If nvm is missing OR a binary lives outside nvm:** surface this; the user decides between (a) reinstalling the CLI under nvm, or (b) removing the `nvm use` line from that wrapper.
 
@@ -185,7 +185,12 @@ The skill ships four templates in `templates/`:
 5. **Install the scorecard:**
    ```bash
    mkdir -p .agent
-   cp "$SKILL_DIR/consultant_scorecard.md" .agent/consultant_scorecard.md
+   if [ -f .agent/consultant_scorecard.md ] && grep -q "winner" .agent/consultant_scorecard.md && ! grep -q "plan_subagent" .agent/consultant_scorecard.md; then
+       echo "Detected v1.x-schema scorecard at .agent/consultant_scorecard.md — leaving it in place."
+       echo "v2.0 entries will append with the new columns; mixed-schema history is acceptable."
+   else
+       cp "$SKILL_DIR/consultant_scorecard.md" .agent/consultant_scorecard.md
+   fi
    ```
 
 6. **Add the policy section to CLAUDE.md.** The `CLAUDE_SECTION.md` template is body-only (no instruction comments), so a plain append is safe:
@@ -201,7 +206,7 @@ The skill ships four templates in `templates/`:
    ```bash
    ls -la tools/ask_codex.sh .agent/consultant_scorecard.md
    [ -f tools/ask_gemini.sh ] && echo "gemini wrapper: present (Full mode)" \
-                              || echo "gemini wrapper: absent (Codex-only mode)"
+                              || echo "gemini wrapper: absent (Codex-only-plus-Plan mode)"
    grep -q "CLI Consultants" CLAUDE.md && echo "CLAUDE.md: ok"
    # Smoke test (only if sessions are already created — otherwise expect an error):
    echo "ping" > /tmp/codex_question.txt && ./tools/ask_codex.sh
@@ -221,7 +226,7 @@ The user runs the CLI interactively, primes it with project docs, exits, and cap
 3. Exit. Codex prints/persists the session ID (location depends on CLI version — usually shown on exit or stored in `~/.codex/sessions/`).
 4. User pastes the session ID into `tools/ask_codex.sh`, replacing `__REPLACE_WITH_CODEX_SESSION_ID__`.
 
-**Gemini (CLI 0.40+) — skip this block in Codex-only mode (`GEMINI_INSTALLED=0`):**
+**Gemini (CLI 0.40+) — skip this block in Codex-only-plus-Plan mode (`GEMINI_INSTALLED=0`):**
 1. From the project root: `gemini` (interactive shell, no `--resume` for a fresh session).
 2. Inside, ask Gemini to read the same orienting docs as Codex (so the two sessions start with comparable context).
 3. Exit. The session is auto-saved per project.
@@ -291,7 +296,7 @@ EOF
 
 Expected: a paragraph or two of architectural commentary in each `_answer.txt`. The Gemini smoke test mirrors the operational skill's required prefix on purpose — even though `--approval-mode plan` already blocks writes, including the prefix here builds the right muscle memory for actual consultations.
 
-In **Codex-only mode** (`tools/ask_gemini.sh` not installed), skip the second smoke test block — it has nothing to call. The Codex one is sufficient.
+In **Codex-only-plus-Plan mode** (`tools/ask_gemini.sh` not installed), skip the second smoke test block — it has nothing to call. The Codex one is sufficient.
 
 Empty output or session-not-found errors → check `/tmp/{codex,gemini}_stderr.log` (see Troubleshooting).
 
@@ -347,9 +352,9 @@ These are load-bearing for the operational skill to work.
 
 After installation, tell the user:
 
-1. **Mode chosen** — `Full` (Codex + Gemini wrappers) or `Codex-only` (only `tools/ask_codex.sh`). If Codex-only, name the operational consequence: every consultation report will carry the `Gemini SKIPPED (not configured on this host)` disclosure line.
+1. **Mode chosen** — `Full` (Codex + Gemini wrappers; v2.0 triple-mandatory final-pass applies) or `Codex-only-plus-Plan` (only `tools/ask_codex.sh`; Plan-subagent compensates with `Gemini SKIPPED ...; Plan-subagent compensating as second voice` disclosure). In either mode, Plan-subagent is mandatory on final-pass per v2.0 policy. If a teammate later installs Gemini, re-running this skill upgrades the project to Full mode.
 2. Files created/modified (paths)
 3. Pre-flight checklist results (binaries found, Node versions OK)
 4. Session creation status — done, or pending user action (per applicable wrapper)
 5. Smoke test result, if sessions were created
-6. Next step — typically: "Sessions need to be primed manually. Walk me through it when ready, or grant me Bash autonomy to do Path B." In Codex-only mode, mention that re-running this skill after installing Gemini will upgrade the project to Full mode (the install is idempotent).
+6. Next step — typically: "Sessions need to be primed manually. Walk me through it when ready, or grant me Bash autonomy to do Path B." In Codex-only-plus-Plan mode, mention that re-running this skill after installing Gemini will upgrade the project to Full mode (the install is idempotent).

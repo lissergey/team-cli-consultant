@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "cli-consultants",
-      "description": "Three-channel review flow: Codex + optional Gemini + Plan-subagent. Operational policy and setup tooling. Codex-only-plus-Plan mode automatically fills the second-voice slot via Plan-subagent when Gemini is not installed.",
-      "version": "1.2.0",
+      "description": "Three-channel review flow: Codex + optional Gemini + Plan-subagent. v2.0 — Plan-subagent is now MANDATORY on every final-pass in Full mode (BREAKING vs v1.x). See MIGRATION.md.",
+      "version": "2.0.0",
       "source": "./",
       "author": {
         "name": "Sergey",
