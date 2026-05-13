@@ -1,7 +1,7 @@
 {
   "name": "cli-consultants",
-  "description": "Three-channel review flow: Codex (required CLI) + optional Gemini (CLI) + Plan-subagent (via Claude Code Agent tool). Operational policy and setup tooling. Codex-only-plus-Plan mode automatically fills the second-voice slot via Plan-subagent when Gemini is not installed. Final-pass prompts include a mandatory agent-execution question that catches execution-readiness bugs missed by architectural review.",
-  "version": "1.2.0",
+  "description": "Three-channel review flow: Codex (required CLI) + optional Gemini (CLI) + Plan-subagent (via Claude Code Agent tool). Operational policy and setup tooling. v2.0 — BREAKING: Plan-subagent is now MANDATORY on every final-pass in Full mode (was optional bonus in v1.x). Scorecard schema bumped to 3 columns. See MIGRATION.md.",
+  "version": "2.0.0",
   "author": {
     "name": "Sergey",
     "email": "samossupport@gmail.com"
