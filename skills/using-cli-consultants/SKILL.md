@@ -68,6 +68,8 @@ PLAN_SUBAGENT_AVAILABLE=1
 | "Gemini wrapper exists but I'll claim it doesn't to skip" | Lying about environment to escape policy is the discipline failure the skill exists to prevent. The runtime check `[ -x tools/ask_gemini.sh ]` is the ground truth, not your assertion. |
 | "I'll just skip installing Gemini in this project to avoid dual final-pass" | Codex-only mode is a cost paid in disclosure (every report carries `Gemini SKIPPED`). Choosing it deliberately to escape discipline is observable in the scorecard and report trail. The right move when Gemini is genuinely unavailable: accept Codex-only and disclose. The wrong move: install-skip as policy laundering. |
 | "Reports don't really need the `Gemini SKIPPED` line, the user can see Gemini isn't installed" | Wrong. The disclosure is non-optional in Codex-only mode. It's how you and the user track when single-pass was used vs. dual, for retrospective calibration of misses. |
+| "Plan-subagent is optional, so I'll skip it on tie-break to save tokens" | Tie-break is one of the two cases where Plan-subagent is **mandatory**, not optional. Picking a winner between two confidently-disagreeing models without a fresh-context third voice is exactly the failure mode this role exists to prevent. |
+| "Codex came back 429, I'll just proceed with Gemini alone and disclose later" | When Codex is unreachable, Plan-subagent is the mandatory replacement, not Gemini-alone. Skipping it forfeits the independent voice the policy requires. Disclose Codex-was-down AND that Plan-subagent took over. |
 
 **Violating the letter of the policy is violating the spirit.** Don't rationalize.
 
