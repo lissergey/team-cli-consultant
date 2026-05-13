@@ -230,7 +230,8 @@ Fields capture: date, artifact, task type, question, each consultant's TL;DR, yo
 | Both disagree confidently | Genuine non-falsifiable design choice | Iterate (give each the other's view) up to 4 rounds; if no convergence, escalate to user with both views — don't pick a side. |
 | Codex 429 / rate-limited mid-task | Provider rate limit | Switch to Plan-subagent for this pass; note in report ("Codex rate-limited; Plan-subagent took the primary slot"). Resume Codex on next pass if quota recovers. |
 | Gemini drift (answers reference nonexistent files / wrong project phase) | Stale session context, session contamination | Discard the answer; engage Plan-subagent as replacement for this pass; flag for re-priming the Gemini session at next opportunity. Don't try to "fix the answer" — fresh context wins. |
-| Consultant fully unreachable (network/quota) | Outage | Continue with remaining consultants (Plan-subagent always available); mark in report. Don't block. |
+| Consultant fully unreachable (network/quota) | Outage | Continue with remaining consultants (Plan-subagent always available in Claude Code sessions); mark in report. Don't block. |
+| Plan-subagent unavailable (no Agent tool in runtime) | Running outside Claude Code (e.g., direct CLI Codex/Gemini session, or another agent runtime) | Degrade to v1.x dual policy for this final-pass; explicit disclosure line `Plan-subagent UNAVAILABLE (no Agent tool in this runtime)` in the report. Surface to user — this likely means the operational skill is being executed in the wrong environment. |
 
 ## Don't block
 
