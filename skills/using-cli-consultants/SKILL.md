@@ -35,19 +35,21 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 ## Policy table — when each is mandatory
 
-| Situation | Codex | Gemini (if configured) |
-|---|---|---|
-| Quick architecture sanity-check / design clarification | mandatory | optional |
-| Spec draft — iterations 1..N-1 | mandatory | not needed |
-| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** |
-| Plan draft — iterations 1..N-1 | mandatory | not needed |
-| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** |
-| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** |
-| Tie-break on disagreement | engage both iteratively until convergence | |
+| Situation | Codex | Gemini (if configured) | Plan-subagent |
+|---|---|---|---|
+| Quick architecture sanity-check / design clarification | mandatory | optional | optional |
+| Spec draft — iterations 1..N-1 | mandatory | not needed | optional |
+| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| Plan draft — iterations 1..N-1 | mandatory | not needed | optional |
+| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| Tie-break on Codex/Gemini disagreement | engage both iteratively until convergence | | **mandatory deciding voice** |
+| **Codex rate-limited / unreachable** | n/a | works | **mandatory replacement** |
+| **Gemini drifting** (answering about a different phase / referencing nonexistent files) | works | ignore answer | **mandatory replacement** |
 
-**Codex-only mode (when `tools/ask_gemini.sh` is absent):** Replace every "mandatory dual" cell above with "mandatory single-Codex pass + explicit `Gemini SKIPPED (not configured on this host)` line in the consultation report". The discipline does NOT vanish — it gets demoted into single-pass-with-disclosure. Reports without the disclosure line are not allowed.
+**Codex-only-plus-Plan mode (when `tools/ask_gemini.sh` is absent but Plan-subagent is available):** Replace every "mandatory dual" cell above with "Codex + Plan-subagent quasi-dual pass + explicit `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` line in the consultation report". The discipline does NOT vanish — Plan-subagent's fresh-context first-read covers most of what Gemini would have caught. Reports without the disclosure line are not allowed.
 
-**Don't overuse.** Trivial choices (variable naming, wording, formatting, single-line code style) go to the user directly, never to consultants.
+**Don't overuse.** Trivial choices (variable naming, wording, formatting, single-line code style) go to the user directly, never to consultants — including Plan-subagent.
 
 ## The discipline this skill enforces
 
