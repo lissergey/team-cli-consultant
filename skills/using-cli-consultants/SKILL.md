@@ -39,6 +39,8 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 > **Cardinality reminder:** When a row marks `mandatory (parallel)` for **all three** columns (Codex, Gemini, Plan-subagent), this means a **TRIPLE** dispatch — three consultants firing concurrently in the same orchestration turn. Not two-of-three. Not "Codex+Gemini with Plan-subagent as bonus". Three. If your reading of the row produces a dual or any-two answer, you're applying v1.x mental model — re-read.
 
+> **What "final-pass" means:** A final-pass is a **separate dispatch event** on the artifact that's about to be declared ready. It is NOT the last iter-N. The final spec/plan text — whatever it is at the moment you're about to ship — gets re-read by all mandated consultants from scratch. "Codex already signed off on iter-3" does NOT satisfy Codex's final-pass slot — iter-3 reviewed iter-3's text, and the final draft may differ even by one paragraph. Final-pass is a re-dispatch on the final artifact for ALL mandated channels, including Codex.
+
 | Situation | Codex | Gemini (if configured) | Plan-subagent |
 |---|---|---|---|
 | Quick architecture sanity-check / design clarification | mandatory | optional | optional |
@@ -75,6 +77,8 @@ PLAN_SUBAGENT_AVAILABLE=1
 | "Plan-subagent is optional, so I'll skip it on tie-break to save tokens" | Tie-break is one of the two cases where Plan-subagent is **mandatory**, not optional. Picking a winner between two confidently-disagreeing models without a fresh-context third voice is exactly the failure mode this role exists to prevent. |
 | "Codex came back 429, I'll just proceed with Gemini alone and disclose later" | When Codex is unreachable, Plan-subagent is the mandatory replacement, not Gemini-alone. Skipping it forfeits the independent voice the policy requires. Disclose Codex-was-down AND that Plan-subagent took over. |
 | "Plan-subagent was the optional bonus voice in v1.x — I'll skip it on this final-pass to save tokens" | v2.0 promoted Plan-subagent to **mandatory** on every final-pass in Full mode. The "optional bonus" framing belongs to v1.x and is no longer valid. Token cost is the explicit trade for catching execution-readiness bugs (UnboundLocalError, deadlocks, undefined helpers, broken indentation after iterative edits) that the two persistent-context reviewers miss. Running it is non-negotiable in Full mode. |
+| "Codex already did iter-3 with sign-off, so its final-pass contribution is in hand — I only need to dispatch Gemini and Plan-subagent now" | Final-pass is a **separate dispatch event** from iter-N (see policy-table callout). It re-reads the artifact in its current shape — which may differ from iter-3's text. Codex's iter-3 sign-off is for iter-3's text, not the final draft. Re-dispatch Codex on the final draft alongside Gemini and Plan-subagent. Triple in Full mode means three calls on the final artifact, period. |
+| "I'll just dispatch any-two-of-three on final-pass and call it 2-of-3" | Scorecard's "2-of-3 trigger" describes which consultations get LOGGED, not which get DISPATCHED. In Full mode, ALL three must be dispatched. The 2-of-3 trigger handles degraded modes (Codex-only-plus-Plan, or one consultant being unreachable) — not as an opt-out from triple in Full mode. |
 
 **Violating the letter of the policy is violating the spirit.** Don't rationalize.
 
