@@ -1,6 +1,6 @@
 # CLI Consultants — Claude Code plugin
 
-Codex (+ optional Gemini) CLI consultant flow as a Claude Code plugin. Ships two skills:
+Three-channel review flow (Codex + optional Gemini + Plan-subagent) as a Claude Code plugin. Ships two skills:
 
 - **`using-cli-consultants`** — operational policy: when each consultant is mandatory (architecture sanity-checks, spec drafts, plan finalization, impl verification), how to invoke them, dual final-pass discipline against sunk-cost / authority pressure.
 - **`setting-up-cli-consultants`** — installs wrapper scripts (`tools/ask_codex.sh`, `tools/ask_gemini.sh`), CLAUDE.md policy section, scorecard, and walks through session priming (Path A manual / Path B semi-automated).
@@ -42,7 +42,10 @@ The plugin only ships skill content. Each teammate needs to set up their own aut
 5. `~/.gemini/` auth set up (oauth-personal works; the CLI walks you through it interactively).
 6. Per project: a primed Gemini session (the wrapper resumes `latest` by default).
 
-If Gemini is not installed, the setup skill produces **Codex-only mode**: only `tools/ask_codex.sh` is installed, and the operational policy degrades to single-Codex final-pass with a mandatory `Gemini SKIPPED (not configured on this host)` disclosure line in every consultation report. Discipline doesn't vanish — it gets demoted into single-pass-with-disclosure. Re-running the setup skill after a teammate later installs Gemini upgrades the project to Full mode (idempotent install).
+**Always available (no install needed):**
+7. **Plan-subagent** — invoked via Claude Code's `Agent` tool at consultation time. No CLI, no auth, no session priming. Serves three roles: (a) optional bonus voice on final-pass; (b) mandatory replacement when Codex is rate-limited or Gemini is drifting; (c) compensating second voice in Codex-only-plus-Plan mode.
+
+If Gemini is not installed, the setup skill produces **Codex-only-plus-Plan mode**: `tools/ask_codex.sh` is installed and Plan-subagent fills the second-voice slot on final-pass. The disclosure line in reports becomes `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` — discipline is preserved through the third channel. Re-running the setup skill after a teammate later installs Gemini upgrades the project to Full mode (idempotent install).
 
 Use the `setting-up-cli-consultants` skill — it handles all of this and detects which mode applies on each teammate's machine.
 
@@ -52,7 +55,9 @@ The skill assumes nvm at `$HOME/.nvm`. If a teammate uses a different Node manag
 
 - **Don't draft non-trivial architecture/specs/plans without consulting Codex first.**
 - **Final-pass on a spec or plan is mandatory dual (Codex + Gemini in parallel) when Gemini is configured — even when Codex already approved.** The skill's whole reason to exist is to hold this line under "Codex already signed off" pressure.
-- **In Codex-only mode** (Gemini wrapper absent), final-pass becomes single-Codex with a non-optional `Gemini SKIPPED (not configured on this host)` disclosure line in every report. The discipline does not vanish — it gets demoted into single-pass-with-disclosure.
+- **In Codex-only-plus-Plan mode** (Gemini wrapper absent), final-pass becomes Codex + Plan-subagent quasi-dual with a non-optional `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report. Plan-subagent's fresh-context first-read covers most of what Gemini would have caught.
+- **All final-pass prompts MUST include the agent-execution question** (verbatim wording in `skills/using-cli-consultants/SKILL.md`) — catches execution-readiness bugs (UnboundLocalError, deadlocks, undefined helpers) that architectural review misses.
+- **Plan-subagent is mandatory on tie-breaks** between Codex and Gemini, and as a replacement when either is unreachable.
 - **Don't overuse.** Trivial naming/wording/style choices go to the user, never to consultants.
 - **Don't block.** If a consultant is unreachable, continue independently and note it in the report.
 
@@ -74,7 +79,8 @@ Full policy table and rationalization counters live in `skills/using-cli-consult
 │           ├── ask_codex.sh
 │           ├── ask_gemini.sh
 │           ├── CLAUDE_SECTION.md
-│           └── consultant_scorecard.md
+│           ├── consultant_scorecard.md
+│           └── PLAN_SUBAGENT_PROMPT.md   # prompt scaffold for Plan-subagent calls
 └── README.md
 ```
 
