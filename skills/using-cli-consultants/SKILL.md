@@ -237,7 +237,7 @@ Codex respects `-s read-only` reliably — no prefix needed.
 
 ## Reporting back to the user
 
-After every consultation, give a brief report. The state of consultants invoked is **non-optional** — the user (and the scorecard, in dual cases) needs to know what actually ran.
+After every consultation, give a brief report. The state of consultants invoked is **non-optional** — the user (and the scorecard, in multi-consultant cases) needs to know what actually ran.
 
 - **Single call (mid-iteration Codex):** "Asked Codex about X. It said Y. I agree / I disagree because Z."
 - **Full-mode triple final-pass (v2.0 canonical pattern, all three available):** "Triple final-pass on X. Codex: Y₁. Gemini: Y₂. Plan-subagent: Y₃. [Synthesis: convergence/divergence per finding; tie-breaks within the triple resolved by majority or escalated to user when non-falsifiable; final decision.]"
@@ -288,7 +288,7 @@ If a consultant is unreachable or returns an unclear answer, **continue independ
 - Skipping the Gemini read-only prefix
 - About to consult on a naming/style/wording choice
 - Reporting a Codex-only final-pass without the `Gemini SKIPPED` disclosure line
-- Considering "I'll just delete `tools/ask_gemini.sh` from this project to escape dual-pass" — that's policy laundering, observable in git diff
+- Considering "I'll just delete `tools/ask_gemini.sh` from this project to escape triple-mandatory final-pass" — that's policy laundering, observable in git diff; you'll still owe Codex + Plan-subagent on every final-pass plus the disclosure line
 - Picking a winner on Codex↔Gemini tie-break without engaging Plan-subagent
 - Treating Plan-subagent as "the cheap option" and bulk-using it in place of Codex for iter-1..N-1 architecture work — its strength is fresh context, not architectural depth; wrong tool for that slot
 - Skipping the mandatory final-pass agent-execution question because "the architecture is obviously fine"
