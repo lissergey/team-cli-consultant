@@ -17,7 +17,7 @@ Codex and Gemini run as **read-only persistent CLI sessions** that know the proj
 
 When only Codex is configured (Gemini wrapper absent), Plan-subagent acts as the second voice in **Codex-only-plus-Plan mode** — see below. Pure single-consultant mode is no longer the default fallback; if Codex is also down, escalate to the user.
 
-**v2.0 change vs v1.x:** Plan-subagent on final-pass moved from optional-bonus to mandatory in Full mode. The discipline cost (one extra Agent-tool call per final-pass) is the explicit trade for catching execution-readiness bugs that dual-pass misses.
+**v2.0 change vs v1.x:** Plan-subagent on final-pass moved from optional-bonus to mandatory in Full mode. **Final-pass in Full mode dispatches THREE consultants — Codex + Gemini + Plan-subagent — not two.** The discipline cost (one extra Agent-tool call per final-pass) is the explicit trade for catching execution-readiness bugs that two-model review misses. If your mental model is still saying "dual final-pass", that's v1.x carryover — drop it.
 
 ## Detecting available consultants
 
@@ -36,6 +36,8 @@ PLAN_SUBAGENT_AVAILABLE=1
 - All three available → **Full mode** with mandatory triple final-pass. Every spec/plan/impl-verify final-pass dispatches Codex + Gemini + Plan-subagent in parallel. No dual-without-Plan-subagent variant exists in Full mode v2.0+.
 
 ## Policy table — when each is mandatory
+
+> **Cardinality reminder:** When a row marks `mandatory (parallel)` for **all three** columns (Codex, Gemini, Plan-subagent), this means a **TRIPLE** dispatch — three consultants firing concurrently in the same orchestration turn. Not two-of-three. Not "Codex+Gemini with Plan-subagent as bonus". Three. If your reading of the row produces a dual or any-two answer, you're applying v1.x mental model — re-read.
 
 | Situation | Codex | Gemini (if configured) | Plan-subagent |
 |---|---|---|---|
@@ -61,12 +63,12 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 | Excuse | Reality |
 |---|---|
-| "Codex already signed off twice — Gemini would just rehash" | Gemini is a *different model*. If they always agreed, dual pass would be pointless. The value is in the divergence. |
-| "Plan looks solid, covers everything" | "Looks solid" is exactly when blind spots hide. That's the case dual-pass is built for. |
-| "We're past the design phase / have momentum" | Sunk cost is not an argument. The cost of one Gemini call is 10 minutes; the cost of a missed failure mode is the rest of the quarter. |
-| "User told me to skip the extra round" | The user owns scope and priority; the consultant policy is your discipline, not theirs to waive. State the cost of skipping and run the dual anyway, or explicitly escalate ("policy says dual final-pass — skip on your call?"). Do not silently comply. |
-| "Time pressure" | Unless the deadline is < 15 min away, the dual pass fits. If it truly doesn't, run Codex final + flag in the report that Gemini was deferred. |
-| "Trivial change to a final artifact" | If it's trivial, the dual pass returns "no concerns" in 2 minutes. Run it anyway — the cost asymmetry is overwhelming. |
+| "Codex already signed off twice — Gemini would just rehash" | Gemini is a *different model*. Plan-subagent is a *third different reviewer* with fresh context. If they always agreed, the triple pass would be pointless — the value is in their divergence on the same artifact. |
+| "Plan looks solid, covers everything" | "Looks solid" is exactly when blind spots hide. That's the case triple-mandatory final-pass is built for. |
+| "We're past the design phase / have momentum" | Sunk cost is not an argument. The cost of one final-pass dispatch (one Gemini call + one Plan-subagent call) is 10 minutes; the cost of a missed failure mode is the rest of the quarter. |
+| "User told me to skip the extra round" | The user owns scope and priority; the consultant policy is your discipline, not theirs to waive. State the cost of skipping and run the triple anyway, or explicitly escalate ("policy says triple-mandatory final-pass — skip on your call?"). Do not silently comply. |
+| "Time pressure" | Unless the deadline is < 15 min away, the triple-mandatory final-pass fits. If it truly doesn't, run Codex final + flag in the report exactly which consultants were deferred and why. |
+| "Trivial change to a final artifact" | If it's trivial, the triple pass returns "no concerns" in 2 minutes. Run it anyway — the cost asymmetry is overwhelming. |
 | "Gemini wrapper exists but I'll claim it doesn't to skip" | Lying about environment to escape policy is the discipline failure the skill exists to prevent. The runtime check `[ -x tools/ask_gemini.sh ]` is the ground truth, not your assertion. |
 | "I'll just skip installing Gemini in this project to avoid dual final-pass" | Codex-only mode is a cost paid in disclosure (every report carries `Gemini SKIPPED`). Choosing it deliberately to escape discipline is observable in the scorecard and report trail. The right move when Gemini is genuinely unavailable: accept Codex-only and disclose. The wrong move: install-skip as policy laundering. |
 | "Reports don't really need the `Gemini SKIPPED` line, the user can see Gemini isn't installed" | Wrong. The disclosure is non-optional in Codex-only mode. It's how you and the user track when single-pass was used vs. dual, for retrospective calibration of misses. |
