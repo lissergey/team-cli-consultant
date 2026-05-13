@@ -33,18 +33,18 @@ PLAN_SUBAGENT_AVAILABLE=1
 | **Codex rate-limited / unreachable** | n/a | works | **mandatory replacement** |
 | **Gemini drifting** | works | ignore answer | **mandatory replacement** |
 
-**Codex-only-plus-Plan mode (when `tools/ask_gemini.sh` is absent):** every "mandatory dual" cell above degrades to a Codex + Plan-subagent quasi-dual pass with a **non-optional `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice`** disclosure line in the consultation report. The discipline does not vanish — Plan-subagent's fresh-context first-read covers most of what Gemini would have caught.
+**Codex-only-plus-Plan mode (when `tools/ask_gemini.sh` is absent):** every triple-mandatory row above degrades to a Codex + Plan-subagent quasi-dual pass with a **non-optional `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice`** disclosure line in the consultation report. The discipline does not vanish — Plan-subagent's fresh-context first-read covers most of what Gemini would have caught.
 
 ### Rules
 
 - **Consultant first, user second.** Architecture/design/planning questions go to consultants BEFORE the user. Saves the user's time.
 - **Don't overuse.** Trivial choices (variable naming, wording, formatting) go to the user directly, never to consultants.
-- **Final pass in Full mode = Codex + Gemini + Plan-subagent in parallel (triple-mandatory v2.0).** In Codex-only-plus-Plan mode (Gemini missing) it remains Codex + Plan-subagent dual with the `Gemini SKIPPED` disclosure. Plan-subagent's role moved from optional bonus (v1.x) to mandatory (v2.0+) in both modes. Sequential dispatch is not the canonical pattern — fire all available consultants in the same orchestration turn.
+- **Final pass in Full mode = Codex + Gemini + Plan-subagent in parallel (triple-mandatory v2.0).** In Codex-only-plus-Plan mode (Gemini missing) it remains Codex + Plan-subagent dual with the `Gemini SKIPPED` disclosure — unchanged from v1.2.0. The v2.0 change is in Full mode only: Plan-subagent's role moved from optional bonus to mandatory third channel. Sequential dispatch is not the canonical pattern — fire all available consultants in the same orchestration turn.
 - **Final-pass prompts MUST include the agent-execution question:** *"Would a fresh subagent with no prior context execute this spec/plan correctly on first try, without UnboundLocalErrors, deadlocks, missing variable references, or undefined helpers? Are all task boundaries self-contained?"*
 - **Don't block.** If a consultant is unreachable or unclear, continue independently and note it in the report.
-- **Report briefly after each consultation:** what asked, what got, agree/disagree. On dual: convergence vs. divergence. In Codex-only mode: include the `Gemini SKIPPED (not configured on this host)` disclosure line every time.
+- **Report briefly after each consultation:** what asked, what got, agree/disagree. On triple (Full mode): convergence vs. divergence across three answers. In Codex-only-plus-Plan mode: include the `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line every time.
 - **Scorecard.** Calls with **at least 2 of 3 consultants engaged** on the same question append a row to `.agent/consultant_scorecard.md`. In Full mode this is every spec/plan/impl-verify final-pass (all three engaged); in Codex-only-plus-Plan mode it is every final-pass (Codex + Plan-subagent = 2 of 3). Single-consultant iter-1..N-1 calls are not logged. See `using-cli-consultants` for full v2.0 schema.
 
 ### Operational details
 
-For invocation patterns, prompt structure, the required Gemini read-only prefix, parallel-pass commands, failure modes, and the discipline rationale (especially against sunk-cost / authority pressure to skip the dual final-pass), see the `using-cli-consultants` skill.
+For invocation patterns, prompt structure, the required Gemini read-only prefix, parallel-pass commands, failure modes, and the discipline rationale (especially against sunk-cost / authority pressure to skip the triple final-pass in Full mode), see the `using-cli-consultants` skill.

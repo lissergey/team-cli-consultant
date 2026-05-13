@@ -50,13 +50,13 @@ codex --version
 
 # 2. Gemini CLI on PATH — OPTIONAL (need >= 0.40 if installed)
 #    Absence is fine and expected on hosts where the teammate doesn't use Gemini.
-#    The install will produce Codex-only mode in that case.
+#    The install will produce Codex-only-plus-Plan mode in that case.
 if command -v gemini >/dev/null; then
     GEMINI_INSTALLED=1
     gemini --version
 else
     GEMINI_INSTALLED=0
-    echo "Gemini CLI not detected — installing in Codex-only mode."
+    echo "Gemini CLI not detected — installing in Codex-only-plus-Plan mode."
     echo "(Operational consequence: every consultation report carries the line"
     echo " 'Gemini SKIPPED (not configured on this host)'. See using-cli-consultants.)"
 fi
@@ -206,7 +206,7 @@ The skill ships four templates in `templates/`:
    ```bash
    ls -la tools/ask_codex.sh .agent/consultant_scorecard.md
    [ -f tools/ask_gemini.sh ] && echo "gemini wrapper: present (Full mode)" \
-                              || echo "gemini wrapper: absent (Codex-only mode)"
+                              || echo "gemini wrapper: absent (Codex-only-plus-Plan mode)"
    grep -q "CLI Consultants" CLAUDE.md && echo "CLAUDE.md: ok"
    # Smoke test (only if sessions are already created — otherwise expect an error):
    echo "ping" > /tmp/codex_question.txt && ./tools/ask_codex.sh
@@ -226,7 +226,7 @@ The user runs the CLI interactively, primes it with project docs, exits, and cap
 3. Exit. Codex prints/persists the session ID (location depends on CLI version — usually shown on exit or stored in `~/.codex/sessions/`).
 4. User pastes the session ID into `tools/ask_codex.sh`, replacing `__REPLACE_WITH_CODEX_SESSION_ID__`.
 
-**Gemini (CLI 0.40+) — skip this block in Codex-only mode (`GEMINI_INSTALLED=0`):**
+**Gemini (CLI 0.40+) — skip this block in Codex-only-plus-Plan mode (`GEMINI_INSTALLED=0`):**
 1. From the project root: `gemini` (interactive shell, no `--resume` for a fresh session).
 2. Inside, ask Gemini to read the same orienting docs as Codex (so the two sessions start with comparable context).
 3. Exit. The session is auto-saved per project.
@@ -296,7 +296,7 @@ EOF
 
 Expected: a paragraph or two of architectural commentary in each `_answer.txt`. The Gemini smoke test mirrors the operational skill's required prefix on purpose — even though `--approval-mode plan` already blocks writes, including the prefix here builds the right muscle memory for actual consultations.
 
-In **Codex-only mode** (`tools/ask_gemini.sh` not installed), skip the second smoke test block — it has nothing to call. The Codex one is sufficient.
+In **Codex-only-plus-Plan mode** (`tools/ask_gemini.sh` not installed), skip the second smoke test block — it has nothing to call. The Codex one is sufficient.
 
 Empty output or session-not-found errors → check `/tmp/{codex,gemini}_stderr.log` (see Troubleshooting).
 
@@ -357,4 +357,4 @@ After installation, tell the user:
 3. Pre-flight checklist results (binaries found, Node versions OK)
 4. Session creation status — done, or pending user action (per applicable wrapper)
 5. Smoke test result, if sessions were created
-6. Next step — typically: "Sessions need to be primed manually. Walk me through it when ready, or grant me Bash autonomy to do Path B." In Codex-only mode, mention that re-running this skill after installing Gemini will upgrade the project to Full mode (the install is idempotent).
+6. Next step — typically: "Sessions need to be primed manually. Walk me through it when ready, or grant me Bash autonomy to do Path B." In Codex-only-plus-Plan mode, mention that re-running this skill after installing Gemini will upgrade the project to Full mode (the install is idempotent).
