@@ -72,6 +72,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 | "Reports don't really need the `Gemini SKIPPED` line, the user can see Gemini isn't installed" | Wrong. The disclosure is non-optional in Codex-only mode. It's how you and the user track when single-pass was used vs. dual, for retrospective calibration of misses. |
 | "Plan-subagent is optional, so I'll skip it on tie-break to save tokens" | Tie-break is one of the two cases where Plan-subagent is **mandatory**, not optional. Picking a winner between two confidently-disagreeing models without a fresh-context third voice is exactly the failure mode this role exists to prevent. |
 | "Codex came back 429, I'll just proceed with Gemini alone and disclose later" | When Codex is unreachable, Plan-subagent is the mandatory replacement, not Gemini-alone. Skipping it forfeits the independent voice the policy requires. Disclose Codex-was-down AND that Plan-subagent took over. |
+| "Plan-subagent was the optional bonus voice in v1.x — I'll skip it on this final-pass to save tokens" | v2.0 promoted Plan-subagent to **mandatory** on every final-pass in Full mode. The "optional bonus" framing belongs to v1.x and is no longer valid. Token cost is the explicit trade for catching execution-readiness bugs (UnboundLocalError, deadlocks, undefined helpers, broken indentation after iterative edits) that the two persistent-context reviewers miss. Running it is non-negotiable in Full mode. |
 
 **Violating the letter of the policy is violating the spirit.** Don't rationalize.
 
