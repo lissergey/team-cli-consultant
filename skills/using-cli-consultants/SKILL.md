@@ -33,7 +33,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 - `CODEX_AVAILABLE=0` → the operational policy can't run; either install Codex (see `setting-up-cli-consultants`), use Plan-subagent as full replacement, or work without consultants and disclose this to the user.
 - `GEMINI_AVAILABLE=0` → **Codex-only-plus-Plan mode** (see below). Final-pass dual degrades to Codex + Plan-subagent quasi-dual with a softer mandatory disclosure line.
-- All three available → full triple-eligible policy. Dual final-pass (Codex + Gemini) remains the default; Plan-subagent is optional bonus and mandatory only on tie-break.
+- All three available → **Full mode** with mandatory triple final-pass. Every spec/plan/impl-verify final-pass dispatches Codex + Gemini + Plan-subagent in parallel. No dual-without-Plan-subagent variant exists in Full mode v2.0+.
 
 ## Policy table — when each is mandatory
 
