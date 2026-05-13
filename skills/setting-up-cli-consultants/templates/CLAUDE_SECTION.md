@@ -25,10 +25,10 @@ PLAN_SUBAGENT_AVAILABLE=1
 |---|---|---|---|
 | Quick architecture sanity-check | mandatory | optional | optional |
 | Spec — iterations 1..N-1 | mandatory | not needed | optional |
-| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
 | Plan — iterations 1..N-1 | mandatory | not needed | optional |
-| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
-| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
+| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
 | Tie-break on Codex/Gemini disagreement | engage both iteratively until convergence | | **mandatory deciding voice** |
 | **Codex rate-limited / unreachable** | n/a | works | **mandatory replacement** |
 | **Gemini drifting** | works | ignore answer | **mandatory replacement** |
@@ -39,7 +39,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 - **Consultant first, user second.** Architecture/design/planning questions go to consultants BEFORE the user. Saves the user's time.
 - **Don't overuse.** Trivial choices (variable naming, wording, formatting) go to the user directly, never to consultants.
-- **Final pass = Codex + Gemini in parallel (if Gemini wrapper exists), or Codex + Plan-subagent quasi-dual (if Gemini missing).** Not sequentially. Even if Codex already approved across multiple rounds — Gemini and Plan-subagent are *different* reviewers with different blind spots, not a rehash. Plan-subagent specifically catches execution-readiness bugs (broken indentation, fictional API refs, wire-shape gaps) that persistent-context reviewers miss.
+- **Final pass in Full mode = Codex + Gemini + Plan-subagent in parallel (triple-mandatory v2.0).** In Codex-only-plus-Plan mode (Gemini missing) it remains Codex + Plan-subagent dual with the `Gemini SKIPPED` disclosure. Plan-subagent's role moved from optional bonus (v1.x) to mandatory (v2.0+) in both modes. Sequential dispatch is not the canonical pattern — fire all available consultants in the same orchestration turn.
 - **Final-pass prompts MUST include the agent-execution question:** *"Would a fresh subagent with no prior context execute this spec/plan correctly on first try, without UnboundLocalErrors, deadlocks, missing variable references, or undefined helpers? Are all task boundaries self-contained?"*
 - **Don't block.** If a consultant is unreachable or unclear, continue independently and note it in the report.
 - **Report briefly after each consultation:** what asked, what got, agree/disagree. On dual: convergence vs. divergence. In Codex-only mode: include the `Gemini SKIPPED (not configured on this host)` disclosure line every time.
