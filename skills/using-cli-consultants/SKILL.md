@@ -148,17 +148,22 @@ Required prompt sections (full template lives at `${CLAUDE_PLUGIN_ROOT}/skills/s
 6. **Output format** — numbered findings with severity (BLOCKER / IMPORTANT / NICE-TO-HAVE / OK); end with verdict (`ship-as-is / fix-then-ship / iter-N needed`)
 7. **Constraints** — read-only; do NOT modify any files
 
-**Parallel triple final-pass** (when running Plan-subagent alongside Codex + Gemini as bonus voice):
+**Parallel triple final-pass — the canonical Full-mode pattern (v2.0):**
+
+In Full mode (all three consultants configured), every spec/plan/impl-verify final-pass MUST dispatch all three in parallel. "Parallel" here means **same-orchestration-turn dispatch**: one assistant message that fires both bash wrappers in the background AND issues the Agent tool call for Plan-subagent. The agent runtime parallelizes natively across tool types.
 
 ```bash
-# Fire CLI consultants in parallel as usual
+# Fire CLI consultants in parallel
 ./tools/ask_codex.sh  > /tmp/codex_run.log  2>&1 &
 ./tools/ask_gemini.sh > /tmp/gemini_run.log 2>&1 &
-# Plan-subagent in the SAME orchestration step: dispatch it as an Agent tool call
-# in the same message that fires the wrappers. The agent runtime parallelizes.
+# In the SAME message: dispatch Plan-subagent as an Agent tool call with the
+# PLAN_SUBAGENT_PROMPT.md template content. Both wrappers and Agent run concurrently.
 wait  # for the bash backgrounds
-# Plan-subagent completion is signaled by Agent tool result.
+# Plan-subagent completion is signaled by the Agent tool result in the same turn.
+# Synthesize all three answers; report triple convergence/divergence.
 ```
+
+**Sequential dispatch is not the canonical pattern** — it wastes wall-clock and starves the parallelism that justifies the triple cost. If for some reason Plan-subagent cannot be dispatched in the same turn (e.g., the wrapper outputs need to be inspected before deciding what to ask Plan-subagent — rare), explicitly note in the consultation report that the pass was serial, not parallel.
 
 ## Prompt structure that works
 
