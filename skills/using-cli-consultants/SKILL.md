@@ -122,6 +122,41 @@ In the report back to the user, the line **`Gemini SKIPPED (not configured on th
 
 **Note on Bash tool timeout:** consultant calls can take 2-5 minutes. Set `timeout: 300000` on the Bash invocation, otherwise the default 2-minute timeout truncates the call.
 
+### Plan-subagent invocation
+
+Plan-subagent runs in-session through Claude Code's `Agent` tool — no CLI, no `/tmp/` files. One self-contained call per consultation; never a follow-up (each call is a full re-spawn with no memory of prior calls).
+
+```
+Agent({
+  description: "Fresh-eyes review of <doc> at <sha>",
+  subagent_type: "Plan",
+  model: "opus",
+  prompt: <see PLAN_SUBAGENT_PROMPT.md template from setting-up-cli-consultants>
+})
+```
+
+Required prompt sections (full template lives at `${CLAUDE_PLUGIN_ROOT}/skills/setting-up-cli-consultants/templates/PLAN_SUBAGENT_PROMPT.md`):
+
+1. **Context** — who you are, project, doc path + commit SHA + frontmatter version
+2. **Background** — 2 paragraphs: what the doc describes, what foundation it builds on (Plan-subagent has no conversation history)
+3. **Review history** — rounds count, who participated, closed BLOCKERs, why fresh eyes are needed now
+4. **Critical files to grep** — explicit paths + approximate line numbers for claim verification (saves the subagent's time)
+5. **Task** — 7-8 numbered review sections including the mandatory agent-execution check (see "Prompt structure that works" below)
+6. **Output format** — numbered findings with severity (BLOCKER / IMPORTANT / NICE-TO-HAVE / OK); end with verdict (`ship-as-is / fix-then-ship / iter-N needed`)
+7. **Constraints** — read-only; do NOT modify any files
+
+**Parallel triple final-pass** (when running Plan-subagent alongside Codex + Gemini as bonus voice):
+
+```bash
+# Fire CLI consultants in parallel as usual
+./tools/ask_codex.sh  > /tmp/codex_run.log  2>&1 &
+./tools/ask_gemini.sh > /tmp/gemini_run.log 2>&1 &
+# Plan-subagent in the SAME orchestration step: dispatch it as an Agent tool call
+# in the same message that fires the wrappers. The agent runtime parallelizes.
+wait  # for the bash backgrounds
+# Plan-subagent completion is signaled by Agent tool result.
+```
+
 ## Prompt structure that works
 
 Every consultation prompt should contain:
