@@ -169,6 +169,16 @@ Every consultation prompt should contain:
 
 **Anti-patterns:** wall-of-text without numbered questions; vague "what do you think?"; asking the consultant to write code.
 
+### Mandatory final-pass question (REQUIRED for final-pass prompts)
+
+Every final-pass prompt (for any consultant — Codex, Gemini, Plan-subagent) MUST include verbatim:
+
+> **Would a fresh subagent with no prior context execute this spec/plan correctly on first try, without UnboundLocalErrors, deadlocks, missing variable references, or undefined helpers? Are all task boundaries self-contained?**
+
+This is a **separate dimension** from architectural correctness. A spec can be architecturally pristine but contain undefined helper functions, implicit dependencies between tasks, missing cleanup after failure — these only surface at implementation time. The severity label `BLOCKER (Agent Execution)` was introduced after iterative review missed exactly this class of bug; without an explicit question, agent-execution issues pass architectural-LGTM unnoticed.
+
+Skip in iter-1..N-1 prompts (those are about architecture maturation). Required in final-pass only.
+
 ### Gemini read-only prefix (REQUIRED)
 
 Always prefix the Gemini question text with:
