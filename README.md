@@ -1,5 +1,7 @@
 # CLI Consultants — Claude Code plugin
 
+> **v2.0 — BREAKING:** Plan-subagent is now mandatory on every final-pass in Full mode (was optional bonus in v1.x). Scorecard schema bumped to 3 columns. See [MIGRATION.md](./MIGRATION.md) for the upgrade path. Existing scorecard files are left untouched; the policy change is loud-by-design.
+
 Three-channel review flow (Codex + optional Gemini + Plan-subagent) as a Claude Code plugin. Ships two skills:
 
 - **`using-cli-consultants`** — operational policy: when each consultant is mandatory (architecture sanity-checks, spec drafts, plan finalization, impl verification), how to invoke them, dual final-pass discipline against sunk-cost / authority pressure.
@@ -54,10 +56,10 @@ The skill assumes nvm at `$HOME/.nvm`. If a teammate uses a different Node manag
 ## What the skills enforce
 
 - **Don't draft non-trivial architecture/specs/plans without consulting Codex first.**
-- **Final-pass on a spec or plan is mandatory dual (Codex + Gemini in parallel) when Gemini is configured — even when Codex already approved.** The skill's whole reason to exist is to hold this line under "Codex already signed off" pressure.
-- **In Codex-only-plus-Plan mode** (Gemini wrapper absent), final-pass becomes Codex + Plan-subagent quasi-dual with a non-optional `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report. Plan-subagent's fresh-context first-read covers most of what Gemini would have caught.
+- **Final-pass on a spec or plan is mandatory TRIPLE (Codex + Gemini + Plan-subagent in parallel) in Full mode (v2.0 change).** Even when Codex already approved across multiple rounds. The skill's whole reason to exist is to hold this line under "Codex already signed off" pressure.
+- **In Codex-only-plus-Plan mode** (Gemini wrapper absent), final-pass is Codex + Plan-subagent quasi-dual with a non-optional `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report. Unchanged from v1.2.0.
 - **All final-pass prompts MUST include the agent-execution question** (verbatim wording in `skills/using-cli-consultants/SKILL.md`) — catches execution-readiness bugs (UnboundLocalError, deadlocks, undefined helpers) that architectural review misses.
-- **Plan-subagent is mandatory on tie-breaks** between Codex and Gemini, and as a replacement when either is unreachable.
+- **Scorecard schema v2.0** adds `plan_subagent_tldr` / `plan_subagent_eval` columns + extended `winner` value set. Existing v1.x scorecards are preserved on re-install (non-destructive upgrade).
 - **Don't overuse.** Trivial naming/wording/style choices go to the user, never to consultants.
 - **Don't block.** If a consultant is unreachable, continue independently and note it in the report.
 
@@ -67,6 +69,7 @@ Full policy table and rationalization counters live in `skills/using-cli-consult
 
 ```
 .
+├── MIGRATION.md             # v1.x → v2.0 breaking-change notes
 ├── .claude-plugin/
 │   ├── plugin.json          # plugin metadata
 │   └── marketplace.json     # marketplace listing
