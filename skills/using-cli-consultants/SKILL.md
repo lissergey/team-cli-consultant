@@ -41,15 +41,15 @@ PLAN_SUBAGENT_AVAILABLE=1
 |---|---|---|---|
 | Quick architecture sanity-check / design clarification | mandatory | optional | optional |
 | Spec draft — iterations 1..N-1 | mandatory | not needed | optional |
-| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| **Spec — final pass (before declaring it ready)** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
 | Plan draft — iterations 1..N-1 | mandatory | not needed | optional |
-| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
-| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** | optional bonus voice |
+| **Plan — final pass (before implementation)** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
+| **Verify implementation against spec/plan** | **mandatory** | **mandatory (parallel)** | **mandatory (parallel)** |
 | Tie-break on Codex/Gemini disagreement | engage both iteratively until convergence | | **mandatory deciding voice** |
 | **Codex rate-limited / unreachable** | n/a | works | **mandatory replacement** |
 | **Gemini drifting** (answering about a different phase / referencing nonexistent files) | works | ignore answer | **mandatory replacement** |
 
-**Codex-only-plus-Plan mode (when `tools/ask_gemini.sh` is absent but Plan-subagent is available):** Replace every "mandatory dual" cell above with "Codex + Plan-subagent quasi-dual pass + explicit `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` line in the consultation report". The discipline does NOT vanish — Plan-subagent's fresh-context first-read covers most of what Gemini would have caught. Reports without the disclosure line are not allowed.
+**Codex-only-plus-Plan mode (when `tools/ask_gemini.sh` is absent but Plan-subagent is available):** Plan-subagent was already mandatory in this mode in v1.x, so v2.0 changes nothing here — Codex + Plan-subagent quasi-dual pass with the disclosure line `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice`. The v2.0 symmetry is that Plan-subagent is now mandatory in **both** modes, not just this one.
 
 **Don't overuse.** Trivial choices (variable naming, wording, formatting, single-line code style) go to the user directly, never to consultants — including Plan-subagent.
 
