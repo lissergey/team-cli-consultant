@@ -45,7 +45,7 @@ The plugin only ships skill content. Each teammate needs to set up their own aut
 6. Per project: a primed Gemini session (the wrapper resumes `latest` by default).
 
 **Always available (no install needed):**
-7. **Plan-subagent** — invoked via Claude Code's `Agent` tool at consultation time. No CLI, no auth, no session priming. Serves three roles: (a) optional bonus voice on final-pass; (b) mandatory replacement when Codex is rate-limited or Gemini is drifting; (c) compensating second voice in Codex-only-plus-Plan mode.
+7. **Plan-subagent** — invoked via Claude Code's `Agent` tool at consultation time. No CLI, no auth, no session priming. Serves three roles: (a) **mandatory third channel on every final-pass in Full mode (v2.0 — was optional bonus in v1.x)**; (b) mandatory replacement when Codex is rate-limited or Gemini is drifting; (c) compensating second voice in Codex-only-plus-Plan mode.
 
 If Gemini is not installed, the setup skill produces **Codex-only-plus-Plan mode**: `tools/ask_codex.sh` is installed and Plan-subagent fills the second-voice slot on final-pass. The disclosure line in reports becomes `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` — discipline is preserved through the third channel. Re-running the setup skill after a teammate later installs Gemini upgrades the project to Full mode (idempotent install).
 

@@ -4,7 +4,7 @@ This project uses three potential reviewers — two read-only persistent CLI ses
 
 - `tools/ask_codex.sh` — **Codex** (primary reviewer; **required**)
 - `tools/ask_gemini.sh` — **Gemini** (second-opinion on final passes; **optional**, may be absent on some hosts)
-- **Plan-subagent** — Claude Code's `Agent` tool with `subagent_type=Plan, model=opus`; **always available** in any Claude Code session; **optional bonus voice** on final-pass and **mandatory replacement** when Codex is rate-limited or Gemini is drifting
+- **Plan-subagent** — Claude Code's `Agent` tool with `subagent_type=Plan, model=opus`; **always available** in any Claude Code session; **mandatory (parallel) on every final-pass in Full mode** and **mandatory replacement** when Codex is rate-limited or Gemini is drifting
 
 Mechanism for Codex/Gemini: write the question to `/tmp/codex_question.txt` (or `/tmp/gemini_question.txt`), run the script, read the answer from `/tmp/codex_answer.txt` (or `/tmp/gemini_answer.txt`). Both can read the live repo and cite file paths, but cannot edit anything.
 

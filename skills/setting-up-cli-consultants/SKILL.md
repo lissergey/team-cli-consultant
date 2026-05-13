@@ -22,8 +22,8 @@ The runtime state (questions, answers) lives in `/tmp/{codex,gemini}_{question,a
 
 | Mode | Result | Operational consequence |
 |---|---|---|
-| **Full** | Both wrappers installed | Dual final-pass mandatory per operational policy |
-| **Codex-only** | Only `tools/ask_codex.sh` | Single-Codex final-pass with mandatory `Gemini SKIPPED (not configured on this host)` disclosure in every report |
+| **Full** | Both wrappers installed | **Triple-mandatory final-pass** (Codex + Gemini + Plan-subagent in parallel) per operational policy v2.0 |
+| **Codex-only-plus-Plan** | Only `tools/ask_codex.sh` | **Codex + Plan-subagent quasi-dual** final-pass with mandatory `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure in every report |
 
 The operational counterpart is the `using-cli-consultants` skill — it tells the agent **when** and **how** to use the flow once it's installed, and how to operate in either mode.
 
@@ -97,7 +97,7 @@ The detected `CODEX_NODE_VER` / `GEMINI_NODE_VER` get sed'd into the wrapper tem
 
 **If `codex` is missing:** stop and tell the user. Don't `npm install -g` without permission — the CLI is user-owned. Codex is required.
 
-**If `gemini` is missing:** proceed with Codex-only install. Surface to the user that the result will be Codex-only mode (operational consequence: dual final-pass downgrades to single-Codex final-pass with a mandatory `Gemini SKIPPED` disclosure line in every report). If they later install Gemini, they can re-run this skill — it's idempotent and will add the missing wrapper.
+**If `gemini` is missing:** proceed with Codex-only-plus-Plan install. Surface to the user that the result is **Codex-only-plus-Plan mode** (operational consequence: triple-mandatory final-pass downgrades to Codex + Plan-subagent quasi-dual pass with a mandatory `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report). If they later install Gemini, they can re-run this skill — it's idempotent and will add the missing wrapper, upgrading the project to Full mode.
 
 **If nvm is missing OR a binary lives outside nvm:** surface this; the user decides between (a) reinstalling the CLI under nvm, or (b) removing the `nvm use` line from that wrapper.
 
