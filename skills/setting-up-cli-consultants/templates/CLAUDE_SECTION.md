@@ -43,7 +43,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 - **Final-pass prompts MUST include the agent-execution question:** *"Would a fresh subagent with no prior context execute this spec/plan correctly on first try, without UnboundLocalErrors, deadlocks, missing variable references, or undefined helpers? Are all task boundaries self-contained?"*
 - **Don't block.** If a consultant is unreachable or unclear, continue independently and note it in the report.
 - **Report briefly after each consultation:** what asked, what got, agree/disagree. On dual: convergence vs. divergence. In Codex-only mode: include the `Gemini SKIPPED (not configured on this host)` disclosure line every time.
-- **Scorecard.** Dual-consultant calls (mandatory items or tie-breaks) append a row to `.agent/consultant_scorecard.md`. Single calls (including Codex-only final-passes) are not logged — the scorecard is purely for calibrating the two models against each other when both ran.
+- **Scorecard.** Calls with **at least 2 of 3 consultants engaged** on the same question append a row to `.agent/consultant_scorecard.md`. In Full mode this is every spec/plan/impl-verify final-pass (all three engaged); in Codex-only-plus-Plan mode it is every final-pass (Codex + Plan-subagent = 2 of 3). Single-consultant iter-1..N-1 calls are not logged. See `using-cli-consultants` for full v2.0 schema.
 
 ### Operational details
 

@@ -4,7 +4,7 @@
 
 Three-channel review flow (Codex + optional Gemini + Plan-subagent) as a Claude Code plugin. Ships two skills:
 
-- **`using-cli-consultants`** — operational policy: when each consultant is mandatory (architecture sanity-checks, spec drafts, plan finalization, impl verification), how to invoke them, dual final-pass discipline against sunk-cost / authority pressure.
+- **`using-cli-consultants`** — operational policy: when each consultant is mandatory (architecture sanity-checks, spec drafts, plan finalization, impl verification), how to invoke them, triple-mandatory final-pass discipline against sunk-cost / authority pressure.
 - **`setting-up-cli-consultants`** — installs wrapper scripts (`tools/ask_codex.sh`, `tools/ask_gemini.sh`), CLAUDE.md policy section, scorecard, and walks through session priming (Path A manual / Path B semi-automated).
 
 ## Install
