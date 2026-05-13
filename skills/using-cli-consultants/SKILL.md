@@ -195,8 +195,11 @@ After every consultation, give a brief report. The state of consultants invoked 
 
 - **Single call (mid-iteration Codex):** "Asked Codex about X. It said Y. I agree / I disagree because Z."
 - **Dual final-pass:** "Asked both about X. Codex: Y₁. Gemini: Y₂. Convergence on A, B; divergence on C — taking Codex's view because [reason] / escalating C to user."
-- **Codex-only final-pass (Gemini not configured):** "Asked Codex about X. It said Y. **Gemini SKIPPED (not configured on this host)** — single-Codex final-pass; user, please factor in that this is one model's view, not two."
-- **On failure (configured but unreachable):** "Codex unreachable (timeout / empty answer). Continuing independently with [decision]; flag for re-review when consultant available." For Gemini specifically: "Gemini unreachable (`/tmp/gemini_stderr.log`: <reason>) — fell back to Codex-only for this pass; report includes the `Gemini SKIPPED` line."
+- **Codex-only-plus-Plan final-pass (Gemini not configured):** "Asked Codex and Plan-subagent about X. Codex said Y₁. Plan-subagent said Y₂. Convergence on A; divergence on B — [synthesis]. **Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice.**"
+- **Triple final-pass (all three available, Plan-subagent as bonus):** "Asked all three about X. Codex: Y₁. Gemini: Y₂. Plan-subagent: Y₃. [Synthesis: convergence/divergence; tie-breaks resolved by Plan-subagent if Codex↔Gemini split; final decision.]"
+- **Codex unreachable, Plan-subagent replacing:** "Codex unreachable (`/tmp/codex_stderr.log`: <reason>); Plan-subagent took over as primary architecture reviewer for this pass. Gemini ran in parallel. Report: Plan-subagent: Y₁. Gemini: Y₂. [Synthesis.]"
+- **Gemini drifting, Plan-subagent replacing:** "Gemini answer flagged as drifted (referenced nonexistent files / wrong phase); ignored. Plan-subagent replaced its slot for this pass. Report: Codex: Y₁. Plan-subagent: Y₂. [Synthesis.]"
+- **On failure (configured but unreachable):** For Codex: as above (Plan-subagent replaces). For Gemini: same pattern. For Plan-subagent itself: rare; treat as architectural decision — continue with whoever's left and note in report.
 
 The `Gemini SKIPPED` line is the disclosure cost of Codex-only mode. Don't bury it; surface it explicitly so future-you and the user can audit when single-pass discipline was used.
 
@@ -217,7 +220,9 @@ Fields capture: date, artifact, task type, question, each consultant's TL;DR, yo
 | Gemini hangs ≥ 5 min | CLI session issue | Bump Bash tool timeout to 300000+; if still hangs, mark unreachable, continue independently. |
 | `Approval mode overridden ... folder not trusted` | Gemini refuses `--approval-mode plan` outside trusted workspaces | Set `GEMINI_CLI_TRUST_WORKSPACE=true` for the call, or trust the workspace once interactively. |
 | Both disagree confidently | Genuine non-falsifiable design choice | Iterate (give each the other's view) up to 4 rounds; if no convergence, escalate to user with both views — don't pick a side. |
-| Consultant unreachable (network/quota) | Outage | Continue independently, mark in report — do not block. |
+| Codex 429 / rate-limited mid-task | Provider rate limit | Switch to Plan-subagent for this pass; note in report ("Codex rate-limited; Plan-subagent took the primary slot"). Resume Codex on next pass if quota recovers. |
+| Gemini drift (answers reference nonexistent files / wrong project phase) | Stale session context, session contamination | Discard the answer; engage Plan-subagent as replacement for this pass; flag for re-priming the Gemini session at next opportunity. Don't try to "fix the answer" — fresh context wins. |
+| Consultant fully unreachable (network/quota) | Outage | Continue with remaining consultants (Plan-subagent always available); mark in report. Don't block. |
 
 ## Don't block
 
@@ -236,5 +241,8 @@ If a consultant is unreachable or returns an unclear answer, **continue independ
 - About to consult on a naming/style/wording choice
 - Reporting a Codex-only final-pass without the `Gemini SKIPPED` disclosure line
 - Considering "I'll just delete `tools/ask_gemini.sh` from this project to escape dual-pass" — that's policy laundering, observable in git diff
+- Picking a winner on Codex↔Gemini tie-break without engaging Plan-subagent
+- Treating Plan-subagent as "the cheap option" and bulk-using it in place of Codex for iter-1..N-1 architecture work — its strength is fresh context, not architectural depth; wrong tool for that slot
+- Skipping the mandatory final-pass agent-execution question because "the architecture is obviously fine"
 
 Each of these means: stop, run the canonical flow.
