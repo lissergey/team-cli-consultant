@@ -32,7 +32,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 ```
 
 - `CODEX_AVAILABLE=0` → the operational policy can't run; either install Codex (see `setting-up-cli-consultants`), use Plan-subagent as full replacement, or work without consultants and disclose this to the user.
-- `GEMINI_AVAILABLE=0` → **Codex-only-plus-Plan mode** (see below). Final-pass dual degrades to Codex + Plan-subagent quasi-dual with a softer mandatory disclosure line.
+- `GEMINI_AVAILABLE=0` → **Codex-only-plus-Plan mode** (see below). The Full-mode triple final-pass degrades to a Codex + Plan-subagent quasi-dual pass with a softer mandatory disclosure line.
 - All three available → **Full mode** with mandatory triple final-pass. Every spec/plan/impl-verify final-pass dispatches Codex + Gemini + Plan-subagent in parallel. No dual-without-Plan-subagent variant exists in Full mode v2.0+.
 
 ## Policy table — when each is mandatory
@@ -55,7 +55,7 @@ PLAN_SUBAGENT_AVAILABLE=1
 
 ## The discipline this skill enforces
 
-**Final-pass dual is mandatory regardless of how confident Codex is, how many rounds you ran, or how solid the artifact looks.** Gemini is a *different* model with different blind spots — not a rehash. The dual pass costs ~10 minutes; missing a load-bearing failure mode costs weeks.
+**Final-pass discipline is mandatory regardless of how confident Codex is, how many rounds you ran, or how solid the artifact looks.** In Full mode (v2.0+) that means **triple-mandatory** — Codex + Gemini + Plan-subagent in parallel. Gemini and Plan-subagent are *different* reviewers with *different* blind spots — not rehashes. The triple pass costs ~10 minutes plus one Agent-tool call; missing a load-bearing failure mode costs weeks.
 
 ### Rationalizations — STOP if you think any of these
 
@@ -92,36 +92,60 @@ EOF
 
 If the wrapper hangs or returns silently, see Failure modes.
 
-### Final-pass (dual or single, depending on what's available)
+### Final-pass dispatch — mode-dependent (v2.0)
+
+Detect what's available:
 
 ```bash
-# Detect mode at consultation time
 [ -x tools/ask_gemini.sh ] && GEMINI_AVAILABLE=1 || GEMINI_AVAILABLE=0
+# Plan-subagent: always available in Claude Code sessions (Agent tool present).
 ```
 
-**Dual mode (`GEMINI_AVAILABLE=1`)** — run them in parallel, never sequentially:
+#### Full mode (Codex + Gemini + Plan-subagent) — TRIPLE-MANDATORY, canonical v2.0 pattern
+
+**There is NO dual final-pass in Full mode v2.0+.** All three consultants dispatched in parallel in the SAME orchestration turn.
 
 ```bash
-# Write both question files (usually identical or near-identical)
+# Compose question files (usually identical or near-identical)
 cat > /tmp/codex_question.txt  <<'EOF' ...
 cat > /tmp/gemini_question.txt <<'EOF' ...
 
-# Fire in parallel via background processes (the wrappers handle nvm internally)
+# In the SAME assistant message:
+#   (a) fire BOTH bash wrappers in the background
+#   (b) dispatch Plan-subagent as an Agent tool call (subagent_type=Plan, model=opus)
+#       with the PLAN_SUBAGENT_PROMPT.md scaffold.
+# The agent runtime parallelizes natively across tool types.
 ./tools/ask_codex.sh  > /tmp/codex_run.log  2>&1 &
 ./tools/ask_gemini.sh > /tmp/gemini_run.log 2>&1 &
-wait
+wait  # for bash backgrounds; Plan-subagent's reply arrives via Agent tool result
 
-# Read both answers and synthesize. Report convergence/divergence.
+# Synthesize ALL THREE answers. Report triple convergence/divergence.
 ```
 
-**Codex-only mode (`GEMINI_AVAILABLE=0`)** — single Codex final-pass, with mandatory disclosure:
+If you find yourself dispatching only two of three in Full mode, **STOP** — you've fallen back to the v1.x dual mental model. Re-read the policy table and re-dispatch the missing third channel.
+
+#### Codex-only-plus-Plan mode (Gemini wrapper absent) — quasi-dual
+
+```bash
+cat > /tmp/codex_question.txt <<'EOF' ...
+
+# In the SAME message: fire ask_codex.sh + dispatch Plan-subagent via Agent tool.
+./tools/ask_codex.sh > /tmp/codex_run.log 2>&1 &
+wait
+```
+
+Report MUST include disclosure: **`Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice.`**
+
+#### Pure-Codex fallback (Plan-subagent unreachable — rare)
+
+Only when the runtime has no Agent tool (e.g., direct CLI Codex/Gemini session, not Claude Code):
 
 ```bash
 cat > /tmp/codex_question.txt <<'EOF' ...
 ./tools/ask_codex.sh
 ```
 
-In the report back to the user, the line **`Gemini SKIPPED (not configured on this host)`** is non-optional. See "Reporting back" below.
+Report MUST include disclosure: **`Plan-subagent UNAVAILABLE (no Agent tool in this runtime — degraded to v1.x dual or pure-Codex for this pass)`**. Surface to the user — the operational skill expects an Agent-tool-bearing environment.
 
 **Note on Bash tool timeout:** consultant calls can take 2-5 minutes. Set `timeout: 300000` on the Bash invocation, otherwise the default 2-minute timeout truncates the call.
 
@@ -211,9 +235,9 @@ After every consultation, give a brief report. The state of consultants invoked 
 
 The `Gemini SKIPPED` line is the disclosure cost of Codex-only mode. Don't bury it; surface it explicitly so future-you and the user can audit when single-pass discipline was used.
 
-## Scorecard (dual cases only)
+## Scorecard (multi-consultant cases)
 
-When a consultation invoked **both** consultants on a mandatory item or tie-break, append a row to `.agent/consultant_scorecard.md` (schema is in that file's header). Single-consultant calls (including Codex-only final-passes) are not logged in the scorecard — that file is purely for calibrating the two models against each other when both ran.
+When a consultation invoked **at least 2 of 3** consultants on the same question, append a row to `.agent/consultant_scorecard.md` (schema is in that file's header). In Full mode v2.0+, every spec/plan/impl-verify final-pass triggers a row (all three engaged); in Codex-only-plus-Plan mode, every final-pass also triggers a row (Codex + Plan-subagent = 2 of 3). Single-consultant iter-1..N-1 calls are NOT logged — the scorecard is for calibrating models against each other when more than one ran.
 
 Fields capture: date, artifact, task type, question, each consultant's TL;DR, your eval (correct / partial / wrong / irrelevant / timeout), winner, ground truth (`?` if not yet known), notes on who missed what.
 
@@ -237,15 +261,15 @@ Fields capture: date, artifact, task type, question, each consultant's TL;DR, yo
 
 If a consultant is unreachable or returns an unclear answer, **continue independently** and note it in the report. The skill is a quality lever, not a hard gate. The two hard rules are:
 
-1. Don't claim the dual final-pass happened when it didn't.
-2. When in Codex-only mode (Gemini wrapper absent), the `Gemini SKIPPED (not configured on this host)` disclosure line in every report is non-negotiable — that's the cost of operating with reduced discipline.
+1. Don't claim the final-pass happened in a mode it didn't (triple in Full, quasi-dual in Codex-only-plus-Plan).
+2. When in Codex-only-plus-Plan mode (Gemini wrapper absent), the `Gemini SKIPPED (not configured on this host); Plan-subagent compensating as second voice` disclosure line in every report is non-negotiable — that's the cost of operating without Gemini.
 
 ## Red flags — STOP and reconsider
 
 - About to commit a final spec/plan without running Gemini **when `tools/ask_gemini.sh` exists**
 - Thinking "Codex already said yes, no point asking Gemini"
 - Thinking "user told me to skip — they decided"
-- Running dual sequentially instead of parallel
+- Running the final-pass sequentially instead of dispatching all available consultants in the same orchestration turn
 - Skipping the Gemini read-only prefix
 - About to consult on a naming/style/wording choice
 - Reporting a Codex-only final-pass without the `Gemini SKIPPED` disclosure line
