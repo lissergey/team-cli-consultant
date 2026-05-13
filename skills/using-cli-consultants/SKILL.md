@@ -1,18 +1,21 @@
 ---
 name: using-cli-consultants
-description: Use when about to draft an architecture/design spec, write or finalize an implementation plan, verify an implementation against its spec, or facing a non-trivial architecture/design judgment call. Skip for trivial naming/wording/style choices that belong to the user. Requires `tools/ask_codex.sh` in the project; `tools/ask_gemini.sh` is optional but enables stronger dual final-pass discipline. If wrappers missing, see setting-up-cli-consultants.
+description: Use when about to draft an architecture/design spec, write or finalize an implementation plan, verify an implementation against its spec, or facing a non-trivial architecture/design judgment call. Skip for trivial naming/wording/style choices that belong to the user. Requires `tools/ask_codex.sh` in the project; `tools/ask_gemini.sh` is optional but enables stronger dual final-pass discipline; Plan-subagent (via Claude Code Agent tool) is always available as a third optional channel and fills in for unreachable consultants. If wrappers missing, see setting-up-cli-consultants.
 ---
 
 # Using CLI Consultants
 
 ## Overview
 
-Codex (and optionally Gemini) run as **read-only persistent CLI sessions** that know the project. You consult them via file-based wrapper scripts:
+Three independent reviewers, each with different blind spots:
 
-- `tools/ask_codex.sh` — Codex (primary architecture/design reviewer; **required**)
-- `tools/ask_gemini.sh` — Gemini (second-opinion reviewer for final passes; **optional but recommended**)
+- `tools/ask_codex.sh` — **Codex** (primary architecture/design reviewer; **required**)
+- `tools/ask_gemini.sh` — **Gemini** (second-opinion reviewer for final passes; **optional but recommended**)
+- **Plan-subagent** — Claude Code's `Agent` tool with `subagent_type=Plan, model=opus`; **always available** in any Claude Code session; **optional but recommended for final-pass and as a fallback** when Codex is rate-limited or Gemini is drifting
 
-Two independent models catch each other's blind spots. Both can read the live repo and cite file paths, so claims are checkable. When only Codex is configured, the discipline degrades to single-Codex final-pass — see "Codex-only mode" below.
+Codex and Gemini run as **read-only persistent CLI sessions** that know the project. Plan-subagent is different: **fresh context per call** (no accumulated review history), no rate-limit, no context-drift, but pays the cost of re-loading orienting context every call. The three together catch a wider class of bugs than any pair — Plan-subagent specifically catches execution-readiness issues (broken indentation after iterative edits, fictional API refs, wire-shape gaps) that persistent-context reviewers systematically miss because they accumulate "we already discussed this" bias.
+
+When only Codex is configured (Gemini wrapper absent), Plan-subagent compensates as the second voice for final-passes — see "Codex-only mode" below. Pure single-consultant mode is no longer the default fallback; if Codex is also down, escalate to the user.
 
 ## Detecting available consultants
 
